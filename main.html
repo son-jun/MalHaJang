@@ -1,0 +1,811 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MalHaJang - 말하는 장보기 서비스</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(45deg, #4CAF50, #2196F3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 400px;
+            margin: 0 30px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #f0f0f0;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .cart-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .cart-btn {
+            position: relative;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .cart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #FF1744;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .filters {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: #f8f9fa;
+            border: 2px solid transparent;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .product-card:hover::before {
+            left: 100%;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .product-image {
+            font-size: 80px;
+            text-align: center;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2));
+        }
+
+        .product-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .badge-organic { background: linear-gradient(45deg, #4CAF50, #45a049); }
+        .badge-new { background: linear-gradient(45deg, #2196F3, #1976D2); }
+        .badge-sale { background: linear-gradient(45deg, #FF6B6B, #FF5252); }
+
+        .product-name {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .product-origin {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .stars {
+            color: #FFC107;
+        }
+
+        .product-price {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .current-price {
+            font-size: 24px;
+            font-weight: 800;
+            color: #4CAF50;
+        }
+
+        .original-price {
+            font-size: 18px;
+            color: #999;
+            text-decoration: line-through;
+        }
+
+        .discount-rate {
+            background: #FF6B6B;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .add-to-cart {
+            width: 100%;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-to-cart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .cart-sidebar {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.3);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .cart-sidebar.open {
+            right: 0;
+        }
+
+        .cart-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-cart {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .cart-items {
+            padding: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .qty-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .cart-total {
+            padding: 20px;
+            border-top: 2px solid #4CAF50;
+            background: #f8f9fa;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .search-bar {
+                margin: 0;
+                max-width: 100%;
+            }
+            
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .cart-sidebar {
+                width: 100%;
+                right: -100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+               <div class="logo" style="display: flex; align-items: center;">
+                  <img src="images/스크린샷 2025-07-17 190125.png" alt="MalHaJang" style="height: 32px; margin-right: 8px;">
+                <span style="font-size: 24px; font-weight: 800; background: linear-gradient(45deg, #4CAF50, #2196F3); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">MalHaJang</span>
+            </div>
+
+    <!-- ✅ 검색창 추가 -->
+            <div class="search-bar">
+               <input type="text" placeholder="원하는 품목을 검색하세요..." id="searchInput">
+            </div>
+
+            <div class="cart-info">
+                <button class="cart-btn" onclick="toggleCart()">
+                    🛒 장바구니
+                    <span class="cart-count" id="cartCount">0</span>
+                </button>
+            <div id="totalAmount">₩0</div>
+    </div>
+</div>
+
+        </header>
+
+        <div class="filters">
+            <span>카테고리:</span>
+            <button class="filter-btn active" onclick="filterProducts('all')">전체</button>
+            <button class="filter-btn" onclick="filterProducts('fruits')">과일</button>
+            <button class="filter-btn" onclick="filterProducts('organic')">유기농</button>
+            <button class="filter-btn" onclick="filterProducts('discount')">할인상품</button>
+        </div>
+
+        <div class="products-grid" id="productsGrid">
+            <!-- 상품들이 여기에 동적으로 생성됩니다 -->
+        </div>
+    </div>
+
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>🛒 장바구니</h3>
+            <button class="close-cart" onclick="toggleCart()">✕</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <!-- 장바구니 아이템들이 여기에 표시됩니다 -->
+        </div>
+        <div class="cart-total">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span>총 상품금액:</span>
+                <span id="cartSubtotal">₩0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span>배송비:</span>
+                <span>₩3,000</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px;">
+                <span>총 결제금액:</span>
+                <span id="cartTotal">₩3,000</span>
+            </div>
+            <button class="checkout-btn" onclick="checkout()">주문하기</button>
+        </div>
+    </div>
+
+    <script>
+        const synth = window.speechSynthesis;
+
+        function setupVoiceDescription(productElement, product) {
+            productElement.addEventListener("click", () => {
+               const message = `${product.name}, 원산지: ${product.origin}. ${product.description}. 배송 방식은 ${product.delivery}입니다.`;
+               const utterance = new SpeechSynthesisUtterance(message);
+               utterance.lang = "ko-KR";
+               synth.speak(utterance);
+            });
+        }
+        
+        // 전역 상태 관리
+        const state = {
+            products: [
+                {
+                    id: 1,
+                    name: "프리미엄 유기농 사과",
+                    price: 15000,
+                    image: "🍎",
+                    origin: "대한민국 충주",
+                    discount: true,
+                    discountRate: 20,
+                    rating: 4.8,
+                    reviews: 152,
+                    description: "달콤하고 아삭한 유기농 사과입니다. 농약을 사용하지 않고 친환경적으로 재배했습니다.",
+                    category: "fruits",
+                    badge: "organic",
+                    delivery: "당일배송",
+                    stock: 50
+                },
+                {
+                    id: 2,
+                    name: "신선한 바나나",
+                    price: 8000,
+                    image: "🍌",
+                    origin: "필리핀",
+                    discount: false,
+                    discountRate: 0,
+                    rating: 4.5,
+                    reviews: 98,
+                    description: "영양가 높은 신선한 바나나입니다. 칼륨과 비타민이 풍부합니다.",
+                    category: "fruits",
+                    badge: "new",
+                    delivery: "익일배송",
+                    stock: 30
+                },
+                {
+                    id: 3,
+                    name: "달콤한 딸기",
+                    price: 12000,
+                    image: "🍓",
+                    origin: "대한민국 논산",
+                    discount: true,
+                    discountRate: 15,
+                    rating: 4.9,
+                    reviews: 267,
+                    description: "당도 높은 논산 딸기입니다. 비타민C가 풍부하고 새콤달콤합니다.",
+                    category: "fruits",
+                    badge: "sale",
+                    delivery: "당일배송",
+                    stock: 25
+                },
+                {
+                    id: 4,
+                    name: "프리미엄 오렌지",
+                    price: 18000,
+                    image: "🍊",
+                    origin: "미국 캘리포니아",
+                    discount: false,
+                    discountRate: 0,
+                    rating: 4.6,
+                    reviews: 89,
+                    description: "신선하고 과즙이 풍부한 캘리포니아 오렌지입니다.",
+                    category: "fruits",
+                    badge: "new",
+                    delivery: "익일배송",
+                    stock: 40
+                },
+                {
+                    id: 5,
+                    name: "달콤한 포도",
+                    price: 22000,
+                    image: "🍇",
+                    origin: "대한민국 영천",
+                    discount: true,
+                    discountRate: 25,
+                    rating: 4.7,
+                    reviews: 134,
+                    description: "당도 높은 영천 포도입니다. 씨 없는 품종으로 드시기 편합니다.",
+                    category: "fruits",
+                    badge: "organic",
+                    delivery: "당일배송",
+                    stock: 20
+                },
+                {
+                    id: 6,
+                    name: "신선한 파인애플",
+                    price: 16000,
+                    image: "🍍",
+                    origin: "필리핀",
+                    discount: false,
+                    discountRate: 0,
+                    rating: 4.4,
+                    reviews: 76,
+                    description: "달콤하고 향긋한 열대과일 파인애플입니다. 비타민과 효소가 풍부합니다.",
+                    category: "fruits",
+                    badge: "new",
+                    delivery: "익일배송",
+                    stock: 35
+                }
+            ],
+            cart: [],
+            currentFilter: 'all',
+            searchQuery: ''
+        };
+        // 상품 출력
+        const productsGrid = document.getElementById("productsGrid");
+        products.forEach(product => {
+            const card = document.createElement("div");
+            card.className = "product-card";
+            card.innerHTML = `
+                <div class="product-image">${product.image}</div>
+                <div class="product-info">
+                  <h3>${product.name}</h3>
+                  <p>${product.price.toLocaleString()}원</p>
+                </div>
+            `;
+
+            card.addEventListener("click", () => {
+                const message = `${product.name}, 원산지: ${product.origin}, 설명: ${product.description}, 배송: ${product.delivery}`;
+                const utterance = new SpeechSynthesisUtterance(message);
+                utterance.lang = 'ko-KR';
+                speechSynthesis.speak(utterance);
+            });
+
+            productsGrid.appendChild(card);
+        });
+        // 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            renderProducts();
+            updateCartUI();
+
+            // 검색 기능
+            document.getElementById('searchInput').addEventListener('input', function(e) {
+                state.searchQuery = e.target.value.toLowerCase();
+                renderProducts();
+            });
+        });
+
+        // 상품 렌더링
+        function renderProducts() {
+            const grid = document.getElementById('productsGrid');
+            let filteredProducts = state.products;
+
+            // 필터 적용
+            if (state.currentFilter !== 'all') {
+                if (state.currentFilter === 'organic') {
+                    filteredProducts = state.products.filter(p => p.badge === 'organic');
+                } else if (state.currentFilter === 'discount') {
+                    filteredProducts = state.products.filter(p => p.discount);
+                } else {
+                    filteredProducts = state.products.filter(p => p.category === state.currentFilter);
+                }
+            }
+
+            // 검색 적용
+            if (state.searchQuery) {
+                filteredProducts = filteredProducts.filter(p => 
+                    p.name.toLowerCase().includes(state.searchQuery) ||
+                    p.origin.toLowerCase().includes(state.searchQuery)
+                );
+            }
+
+            grid.innerHTML = filteredProducts.map(product => {
+                const discountedPrice = product.discount ? 
+                    Math.floor(product.price * (1 - product.discountRate / 100)) : product.price;
+
+                return `
+                    <div class="product-card" onclick="showProductDetail(${product.id})">
+                        <div class="product-badge badge-${product.badge}">${getBadgeText(product.badge)}</div>
+                        <div class="product-image">${product.image}</div>
+                        <h3 class="product-name">${product.name}</h3>
+                        <p class="product-origin">📍 ${product.origin}</p>
+                        <div class="product-rating">
+                            <span class="stars">${'★'.repeat(Math.floor(product.rating))}${product.rating % 1 ? '☆' : ''}</span>
+                            <span>${product.rating} (${product.reviews})</span>
+                        </div>
+                        <div class="product-price">
+                            <span class="current-price">₩${discountedPrice.toLocaleString()}</span>
+                            ${product.discount ? `
+                                <span class="original-price">₩${product.price.toLocaleString()}</span>
+                                <span class="discount-rate">${product.discountRate}% 할인</span>
+                            ` : ''}
+                        </div>
+                        <p style="font-size: 14px; color: #666; margin-bottom: 15px;">${product.description}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <span style="font-size: 12px; color: #4CAF50; font-weight: 600;">🚚 ${product.delivery}</span>
+                            <span style="font-size: 12px; color: #666;">재고 ${product.stock}개</span>
+                        </div>
+                        <button class="add-to-cart" onclick="event.stopPropagation(); addToCart(${product.id})">
+                            장바구니 담기
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 배지 텍스트 반환
+        function getBadgeText(badge) {
+            const badgeTexts = {
+                'organic': '🌱 유기농',
+                'new': '🆕 신상품',
+                'sale': '🔥 할인'
+            };
+            return badgeTexts[badge] || '';
+        }
+
+        // 필터 적용
+        function filterProducts(filter) {
+            state.currentFilter = filter;
+            
+            // 필터 버튼 활성화 상태 변경
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            renderProducts();
+        }
+
+        // 장바구니에 상품 추가
+        function addToCart(productId) {
+            const product = state.products.find(p => p.id === productId);
+            const existingItem = state.cart.find(item => item.id === productId);
+
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                state.cart.push({
+                    ...product,
+                    quantity: 1
+                });
+            }
+
+            updateCartUI();
+            showNotification(`${product.name}이(가) 장바구니에 추가되었습니다!`);
+        }
+
+        // 장바구니 UI 업데이트
+        function updateCartUI() {
+            const cartCount = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+            const cartSubtotal = state.cart.reduce((sum, item) => {
+                const price = item.discount ? Math.floor(item.price * (1 - item.discountRate / 100)) : item.price;
+                return sum + (price * item.quantity);
+            }, 0);
+            const deliveryFee = cartSubtotal > 0 ? 3000 : 0;
+            const cartTotal = cartSubtotal + deliveryFee;
+
+            document.getElementById('cartCount').textContent = cartCount;
+            document.getElementById('totalAmount').textContent = `₩${cartTotal.toLocaleString()}`;
+            document.getElementById('cartSubtotal').textContent = `₩${cartSubtotal.toLocaleString()}`;
+            document.getElementById('cartTotal').textContent = `₩${cartTotal.toLocaleString()}`;
+
+            renderCartItems();
+        }
+
+        // 장바구니 아이템 렌더링
+        function renderCartItems() {
+            const cartItemsContainer = document.getElementById('cartItems');
+            
+            if (state.cart.length === 0) {
+                cartItemsContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">장바구니가 비어있습니다.</p>';
+                return;
+            }
+
+            cartItemsContainer.innerHTML = state.cart.map(item => {
+                const price = item.discount ? Math.floor(item.price * (1 - item.discountRate / 100)) : item.price;
+                return `
+                    <div class="cart-item">
+                        <div style="font-size: 40px;">${item.image}</div>
+                        <div class="cart-item-info">
+                            <div style="font-weight: 600; margin-bottom: 5px;">${item.name}</div>
+                            <div style="color: #666; font-size: 14px; margin-bottom: 10px;">₩${price.toLocaleString()}</div>
+                            <div class="quantity-controls">
+                                <button class="qty-btn" onclick="updateQuantity(${item.id}, -1)">-</button>
+                                <span style="margin: 0 10px; font-weight: 600;">${item.quantity}</span>
+                                <button class="qty-btn" onclick="updateQuantity(${item.id}, 1)">+</button>
+                                <button style="margin-left: 10px; background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;" onclick="removeFromCart(${item.id})">삭제</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 수량 업데이트
+        function updateQuantity(productId, change) {
+            const item = state.cart.find(item => item.id === productId);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) {
+                    removeFromCart(productId);
+                } else {
+                    updateCartUI();
+                }
+            }
+        }
+
+        // 장바구니에서 제거
+        function removeFromCart(productId) {
+            state.cart = state.cart.filter(item => item.id !== productId);
+            updateCartUI();
+        }
+
+        // 장바구니 토글
+        function toggleCart() {
+            const cartSidebar = document.getElementById('cartSidebar');
+            cartSidebar.classList.toggle('open');
+        }
+
+        // 주문하기
+        function checkout() {
+            if (state.cart.length === 0) {
+                alert('장바구니가 비어있습니다.');
+                return;
+            }
+
+            const total = document.getElementById('cartTotal').textContent;
+            alert(`주문이 완료되었습니다!\n총 결제금액: ${total}\n\n감사합니다! 🎉`);
+            
+            state.cart = [];
+            updateCartUI();
+            toggleCart();
+        }
+
+        // 상품 상세 보기 (간단한 알림)
+        function showProductDetail(productId) {
+            const product = state.products.find(p => p.id === productId);
+            alert(`📱 상품 상세 정보\n\n🏷️ ${product.name}\n💰 가격: ₩${product.price.toLocaleString()}\n📍 원산지: ${product.origin}\n⭐ 평점: ${product.rating}/5\n📝 ${product.description}\n🚚 배송: ${product.delivery}`);
+        }
+
+        // 알림 표시
+        function showNotification(message) {
+            // 간단한 알림 구현
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(45deg, #4CAF50, #45a049);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                z-index: 10000;
+                transform: translateX(400px);
+                transition: transform 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // 애니메이션
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+
+            setTimeout(() => {
+                notification.style.transform = 'translateX(400px)';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
